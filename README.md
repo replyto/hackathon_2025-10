@@ -977,6 +977,8 @@ För data formatet, kommer vi att använda samma User.class som vi har använd i
 
 Postman ich curl fungerar, men om du tittar i *src/main/resources/static* katalogen, så hittar du en html fil, som är förbered att agera som användar gränssnitt till vårt nya API.
 
+![user-managment-dashboard](./user_managment.png)
+
 För att tillhandahålla det, kan vi lägga till en egen rutt.
 
 1. Först behöver vi skapa rest definitionen.
