@@ -78,7 +78,7 @@ Börja med att öppna *src/main/java/se/replyto/hackathon/routbuilders/__RoutBui
   I den gör loggar felet som har inträffat samt lägger meddelandet i en backout katalog: `.to("{{int001.backout.uri}}")`
 * Som du ser, ser strängen i denna `.to` helt annorlunda ut än den vi har använt oss av i huvudrutten.  
   Detta är för det vi ser här, bara är en reference till en konfiguration, som finns i en egen fil.
-* Om du öppnar *src/main/resources/application.yaml* kan du hitta den riktiga strängen som används i rutten på rad 10: `file:demo/int001-backout`  
+* Om du öppnar *src/main/resources/application.yaml* kan du hitta den riktiga strängen som används i rutten på rad 20: `file:demo/int001-backout`  
   Varje punkt i referencen vi använder i java filen, blir till en hyrarkisk nivå i yaml filen.  
 * I Camels fil komponent är standard beteendet att filer skrivs över.  
   Då vi inte har sagt något annat, som vi gjorde i huvud rutten, kommer filer som redan finns att skrivas över.
@@ -135,9 +135,8 @@ Just nu flyttar vi bara filen så som den är. Camel har möjligheten att manipu
 
 **Genomgång**
 
-* I denna övning har vi lagt till en sträng i filens innehåll.  
-  För att verkställa detta har vi använd oss av `setBody` methoden.  
-  Vi skulle ha kunnat lagt in en sträng direkt som argument i denna method (`.setBody("Detta är min nya body")`).
+* I denna övning har vi lagt till en sträng i filens innehåll med hjälp av `setBody` methoden.  
+* Med denna kan man sätta innehållet i meddelnadet direkt (`.setBody("Detta är min nya body")`).
 * Istället har vi använd `.simple("${bodyAs(String)} File changed by Camel Integration.")` efter `setBody()`.
 * Det vi säger i `"${bodyAs(String)} File changed by Camel Integration."` är att vi vill ha en `String` som börjar med meddelandets body.
   
@@ -223,7 +222,9 @@ Det vi ska göra nu är att parsa en CSV fil.
    .marshal(bindy)
    ```
 
-6. Innan vi kan köra detta behöver vi göra ett sista tillägg: På `from` raden i våran main rutt behöver vi lägga till `*.csv` så att även CSV filer plåckas upp.
+    Nu är vi redå att testa våra ändringar
+    Vi har skapat en nu klass för att hålla våran Bindy konfiguration.
+6. Innan vi kan pråvköra detta behöver vi göra ett sista tillägg: På `from` raden i våran main rutt behöver vi lägga till `*.csv` så att även CSV filer plåckas upp.
 
    ```java
    from("file:demo/int001-in?antInclude=*.txt,*.csv")
@@ -464,7 +465,7 @@ Vi kan använda samma User.java klass för detta. Men vi behöver sätta upp ett
 **Genomgång**
 
 * Vi har lagt till ett nytt data format som använder Jackson bibliotheket för att hantera arrayer av User.class data.
-* Sedan har vi även lagt till konfiguration på detta nya dataformat för att kunna hantera enskilda objekt, som om det våre en array, ungefär på samma sätt som *Varargs* hanteras i Java
+* Sedan har vi även lagt till konfiguration på detta nya dataformat för att kunna hantera enskilda objekt, som om det vore en array, ungefär på samma sätt som *Varargs* hanteras i Java
 * Vi ändrade marhsal att använda JSON data formatet
 * Till slut ändrade vi filnamnet så att det slutade med .json istället.
 
@@ -705,12 +706,12 @@ För data formatet, kommer vi att använda samma User.class som vi har använd i
    }
    ```
 
-2. Denna fil innehåller del kod vi redan känner igen:
+2. Denna fil innehåller en del kod vi redan känner igen:
 
-   * Vi har en data format definition för JSON data
+   * Vi har en dataformat definition för JSON data.
    * Vi har en `DefaultErrorHandlerDefinition` med en tillhörande rutt, som denna gång bara loggar fel och inte skriver till någon fil.
    * Efter detta sätter vi ett antal konfigurationer på Camels rest komponent.
-   * Slutligen har vi definitionen av våran API. Än så länge pekar den till sub rutter som inte finns än. Det är dessa som hanterar all logik för våran REST API och som vi ska bygga.
+   * Slutligen har vi definitionen av våran API. Än så länge pekar den till sub rutter som inte finns än. Det är dessa som komer att hanterar all logik för våran REST API.
    * Vi har även en instans variabel för en map som kommer att användas för att spara användare som API:et hanterar. Dessa persisteras med andra ord bara i minnet, inte på disk. Om applikationen startas om, rensas denna map.
 3. Lägg till följande kod för att hämta alla användare:
    
@@ -749,7 +750,7 @@ För data formatet, kommer vi att använda samma User.class som vi har använd i
    
    * Vi utgåt från att vi får in User data
    * Sedan kontrollerar vi userId. Om det är noll, så skapar vi ett nytt genom att ta det första lediga, som inte finns i `userMap` än.
-   * Efter det sparar vi användaren till `userMap` och sätter användaren med det eventuellt nya Id:et till meddelande body:n
+   * Efter det sparar vi användaren till `userMap` och sätter användaren med det eventuellt nya Id:et till meddelande body:n.
    * Till slut sätter vi rätt HTTP status kod som ska retuneras till klienten.
 5. Nästa rutt vi behöver lägga till är den för att hämta en enskild användare:
    
@@ -790,7 +791,7 @@ För data formatet, kommer vi att använda samma User.class som vi har använd i
        });
    ```
    
-   Denna liknar i stort sätt det vi redan har sett i det föregående rutterna.
+   Denna liknar i stort sätt det vi redan har sett innan.
 7. Till sist lägger vi till rutten för att radera en användare:
    
    ```java
@@ -968,12 +969,12 @@ För data formatet, kommer vi att använda samma User.class som vi har använd i
    }
    ```
 
-9. Nu kan vi starta om applicationen om och testa API:et.
+9. Nu kan vi starta om aplikationen och testa API:et.
 10. Du kan använda curl eller postman för att anropa det på `127.0.0.1:8080/camel/users/`
 
 ### Uppgift 2.2 - Användar gränssnitt
 
-Postman ich curl fungerar, men om du tittar i *src/main/resources/static* katalogen, så hittar du en html fil, som är förbered att agera som användar gränssnitt till vårt nya API.
+Postman och curl fungerar, men om du tittar i *src/main/resources/static* katalogen, så hittar du en html fil, som är förbered att agera som användar gränssnitt till vårt nya API.
 
 ![user-managment-dashboard](./user_managment.png)
 
@@ -1177,7 +1178,7 @@ För att tillhandahålla det, kan vi lägga till en egen rutt.
 
 ### Uppgift 2.3 - Skapa en integration till User API:et
 
-Att lägga till nya användare via web gränssnittet eller curl fungerar. Men i det flesta fallen vill man kunna skicka data från ett system till ett annat. vi kan använda oss av en anpassat rutt i RoutBuilder01.java för att plåcka upp filer med användare och sedan skicka dessa automatiskt till vårat User Rest backend.
+Att lägga till nya användare via web gränssnittet eller curl fungerar. Men i det flesta fallen vill man kunna skicka data från ett system till ett annat. Vi kan använda oss av en anpassat rutt i RoutBuilder01.java för att plocka upp filer med användare och sedan skicka dessa automatiskt till vårat User Rest backend.
 
 1. Lägg till följande rutt i *src/main/java/se/replyto/hackathon/routbuilders/__RoutBuilder01.java__*:
    
@@ -1202,7 +1203,7 @@ Att lägga till nya användare via web gränssnittet eller curl fungerar. Men i 
        .end();
    ```
    
-   Det mesta ifrån denna rutt känner du någ redan igen.
+   Det mesta ifrån denna rutt känner du nog redan igen.
    
    * Vi parsar datat beroende på om det handlar om en CSV eller JSON fil.
    * Då API:et bara kan hantera enskilda användare, styckar vi upp datat, omvandlar det till JSON strängar och skickar in var och en användare för sig till API:et.
