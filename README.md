@@ -9,7 +9,7 @@ Om du inte redan har det, kan du installera Azul Zulu, en OpenJDK variant av Jav
 
 [Downloads](https://www.azul.com/downloads/?package=jdk#zulu)
 
-Var säker på att välj att sätta både PATH och JAVA_HOME variablerna vid installationen.
+Var säker på att välja att sätta både PATH och JAVA_HOME variablerna vid installationen.
 
 För mer ingående instruktioner kan du titta på [Install Azul Zulu on Windows](https://docs.azul.com/core/install/windows#install-azul-zulu-with-msi-installer) dokumentationen.
 
@@ -18,7 +18,7 @@ För mer ingående instruktioner kan du titta på [Install Azul Zulu on Windows]
 För att kunna fokusera på Java-koden istället för att fastna i konfiguration och beroende hantering kommer vi att använda ett verktyg som heter Maven.
 
 Maven läser en lista på vilka bibliotek (beroenden) vi behöver och hämtar dem automatiskt.
-Dessutom organiserar den vårt projekt på ett standartiserat sätt, vilket gör att det blir enklare att först strukturen och bygga applikationen med ett enda kommando.
+Dessutom organiserar den vårt projekt på ett standartiserat sätt, vilket gör att det blir enklare att förstå strukturen och bygga applikationen med ett enda kommando.
 
 För instruktioner om hur du installerar Maven, gå till [Intallation](https://maven.apache.org/install.html)
 
@@ -50,7 +50,7 @@ Aplikationen är förberädd med två färdiga rutter:
    mvn clean spring-boot:run
    ```
 
-2. Kopiera nu test.txt från projektets huvudkatalog eller valfri txt fil till underkatalogen *demo/int001-in/*.
+2. Kopiera nu test.txt från projektets huvudkatalog eller valfri *txt* fil till underkatalogen *demo/int001-in/*.
    Efter ett kort ögonblick bör du se filens innehåll i loggutskriften i fönstret där applikationen körs.   
    Om du tittar i *demo/int001-out* kan du verifiera att filen har flyttats hit.  
 3. Om du kopierar in samma fil till *demo/int001-in* katalogen, kommer du se att det skapas ett fel. Filen har nu flyttasts till *demo/int001-backout* katalogen istället.
@@ -63,16 +63,14 @@ Börja med att öppna *src/main/java/se/replyto/hackathon/routbuilders/__RoutBui
 * I denna fil kan du hitta rutten som användes för att flytta filen.  
   Den börjar med `from("file:demo/int001-in?antInclude=*.txt")` på rad 38.
   
-  Här säger vi att vi vill hämta en fil från *demo/int001-in* och att vi bara är intereserat av filer som slutar med *.txt*
-
+  Här säger vi att vi vill hämtar en fil från *demo/int001-in* och att vi bara är intereserat av filer som slutar med *.txt*
 * Sedan sätter vi ett routId. Detta är helt optionalt, men kan ses som *best practice*.
 * Efter detta har vi bestämmt att fel ska hanteras av `deadLetterChannelBuilder` som är definierat ovanför rutten.
 * För övrigt finns det en del loggning i rutten.
 * Den sista biten som är viktigt för oss just nu är på rad 50: `.to("file:demo/int001-out?fileExist=Fail")`
   
-  Här skickar vi filen till *demo/int001-out*.  
+  Här skickar filen till *demo/int001-out*.  
   `fileExist=Fail` är anledningen, varför vi inte lyckades skicka filen andra gången vi la den i in katalogen: en fil med samma namn fanns redan i destinations katalogen!
-
 * Därför hanterades filen av våran felhantering som är definierat på rad 28-33.  
   Här sätts ett antal optioner som omförsök med mera. Vad den även gör är att peka ut en till rutt, `direct:error-handler` som detta meddelande ska skickas till.
 * `direct` är en komponent för att kunna skicka meddelanden mellan rutter i Camel.
