@@ -1,0 +1,20 @@
+camel:
+  main:
+    run-controller: true
+    context-reload-enabled: true
+  springboot:
+    routes-reload-enabled: true
+  dataformat:
+    jackson:
+      pretty-print: true
+  servlet:
+    mapping:
+      context-path: /camel/*
+
+
+server:
+  port: 8080
+
+int001:
+  backout:
+    uri: file:demo/int001-backout

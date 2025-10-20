@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <style>
+        /* A little bit of styling to make it look clean */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+
+        h1, h2 {
+            color: #0d47a1;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        input[type="text"] {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: bold;
+        }
+
+        button.primary {
+            background-color: #1976d2;
+            color: white;
+            flex-grow: 1;
+        }
+
+        button.primary:hover {
+            background-color: #1565c0;
+        }
+        
+        button.secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+
+        .actions button {
+            margin-right: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.875rem;
+        }
+
+        .actions .edit-btn {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .actions .edit-btn:hover {
+            background-color: #ffa000;
+        }
+
+        .actions .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .actions .delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>👤 User Management Dashboard</h1>
+
+        <h2 id="form-title">Add a New User</h2>
+        <form id="user-form">
+            <input type="hidden" id="userId" name="userId">
+            <input type="text" id="firstName" name="firstName" placeholder="First Name" required>
+            <input type="text" id="lastName" name="lastName" placeholder="Last Name" required>
+            <div class="form-buttons">
+                <button type="submit" class="primary" id="submit-button">Add User</button>
+                <button type="button" class="secondary" id="cancel-button" style="display: none;">Cancel</button>
+            </div>
+        </form>
+
+        <h2>Existing Users</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8080/camel/users';
+
+        // --- DOM Elements ---
+        const userTableBody = document.getElementById('user-table-body');
+        const userForm = document.getElementById('user-form');
+        const formTitle = document.getElementById('form-title');
+        const submitButton = document.getElementById('submit-button');
+        const cancelButton = document.getElementById('cancel-button');
+        const userIdInput = document.getElementById('userId');
+        const firstNameInput = document.getElementById('firstName');
+        const lastNameInput = document.getElementById('lastName');
+
+        /**
+         * Fetches all users from the API and renders them in the table.
+         */
+        async function fetchAndRenderUsers() {
+            try {
+                const response = await fetch(API_BASE_URL);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const users = await response.json();
+                
+                userTableBody.innerHTML = ''; // Clear existing table rows
+                
+                if (users.length === 0) {
+                     userTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>';
+                } else {
+                    users.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.userId}</td>
+                            <td>${user.firstName}</td>
+                            <td>${user.lastName}</td>
+                            <td class="actions">
+                                <button class="edit-btn" onclick="prepareEditForm(${user.userId}, '${user.firstName}', '${user.lastName}')">Edit</button>
+                                <button class="delete-btn" onclick="deleteUser(${user.userId})">Delete</button>
+                            </td>
+                        `;
+                        userTableBody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch users:', error);
+                alert('Error: Could not fetch users from the API. Make sure the API is running.');
+                userTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: red;">Error loading users.</td></tr>';
+            }
+        }
+
+        /**
+         * Handles form submission for both creating and updating users.
+         */
+        async function handleFormSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            const userId = userIdInput.value;
+            const userData = {
+                firstName: firstNameInput.value,
+                lastName: lastNameInput.value,
+            };
+
+            if (userId) {
+                // This is an UPDATE (PUT) operation
+                await updateUser(userId, userData);
+            } else {
+                // This is a CREATE (POST) operation
+                await createUser(userData);
+            }
+        }
+        
+        /**
+         * Creates a new user via a POST request.
+         */
+        async function createUser(userData) {
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData),
+                });
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                
+                resetForm();
+                await fetchAndRenderUsers(); // Refresh the list
+            } catch (error) {
+                console.error('Failed to create user:', error);
+                alert('Error: Could not create the user.');
+            }
+        }
+        
+        /**
+         * Updates an existing user via a PUT request.
+         */
+        async function updateUser(userId, userData) {
+             try {
+                // The API needs the userId in the body as well
+                const fullUserData = { userId: parseInt(userId), ...userData };
+                const response = await fetch(`${API_BASE_URL}/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fullUserData),
+                });
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                
+                resetForm();
+                await fetchAndRenderUsers(); // Refresh the list
+            } catch (error) {
+                console.error('Failed to update user:', error);
+                alert('Error: Could not update the user.');
+            }
+        }
+
+        /**
+         * Deletes a user via a DELETE request.
+         */
+        async function deleteUser(userId) {
+            if (!confirm(`Are you sure you want to delete user with ID ${userId}?`)) {
+                return; // User cancelled the action
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${userId}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                await fetchAndRenderUsers(); // Refresh the list
+            } catch (error) {
+                console.error(`Failed to delete user ${userId}:`, error);
+                alert('Error: Could not delete the user.');
+            }
+        }
+
+        /**
+         * Populates the form with a user's data for editing.
+         */
+        function prepareEditForm(userId, firstName, lastName) {
+            formTitle.textContent = `Editing User #${userId}`;
+            userIdInput.value = userId;
+            firstNameInput.value = firstName;
+            lastNameInput.value = lastName;
+            submitButton.textContent = 'Update User';
+            cancelButton.style.display = 'inline-block';
+            window.scrollTo(0, 0); // Scroll to top to see the form
+        }
+
+        /**
+         * Resets the form to its "Add User" state.
+         */
+        function resetForm() {
+            formTitle.textContent = 'Add a New User';
+            userForm.reset(); // Clears all input fields
+            userIdInput.value = ''; // Ensure hidden ID is cleared
+            submitButton.textContent = 'Add User';
+            cancelButton.style.display = 'none';
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', fetchAndRenderUsers);
+        userForm.addEventListener('submit', handleFormSubmit);
+        cancelButton.addEventListener('click', resetForm);
+    </script>
+
+</body>
+</html>
